@@ -88,6 +88,7 @@ PushRpm () {
 		BASE=$(basename $RPM)
 		curl -X POST --data-binary @$RPM $1${OS_RELEASE}/$BASE
 	done
+    exit 0
 }
 
 #============================================================================================#
