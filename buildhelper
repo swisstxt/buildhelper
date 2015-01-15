@@ -18,6 +18,7 @@ Main () {
 		;; getosrelease ) GetOsRelease
 		;; getgitrev    ) GetGitRev $Opt
 		;; getspec      ) GetSpec $Opt
+		;; pushrpm      ) PushRpm $Opt
 		;; help         ) Help 0
 		;; *            ) echo "$Prog: error. Unknown command: $Command" ; Help 41
 	esac
@@ -76,6 +77,20 @@ GetSpec () {
 }
 
 #============================================================================================#
+PushRpm () {
+	if [ "$1" = "$DefaultOptString" ]; then
+		echo "$Prog: error. pushrpm command requires an argument" ; Help 42
+	fi
+
+	OS_RELEASE=$(lsb_release -rs | cut -f1 -d.)
+
+	for RPM in $(find . -name "*.rpm" | grep -v src.rpm); do 
+		BASE=$(basename $RPM)
+		curl -X POST --data-binary @$RPM $1${OS_RELEASE}/$BASE
+	done
+}
+
+#============================================================================================#
 Help () {
 	local readonly Status=$1
 
@@ -85,6 +100,8 @@ Help () {
 		getosrelease      : get os release of current system
 		getgitrev [DIR]   : gets the git revision of given directory
 		getspec [PKGNAME] : finds the required spec file in SPECS subfolder for PKGNAME
+		pushrpm [BASEURL] : pushes all *.rpm files found in current dir 
+		                    to [BASEURL][OS_RELEASE]/[RPMNAME]
 		help              : displays this help message"
 
  exit $Status
