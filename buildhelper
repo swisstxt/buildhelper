@@ -1,0 +1,95 @@
+#!/bin/bash -eu
+
+readonly DefaultOptString=cjbsdkurh4bfajbrfg45
+
+#============================================================================================#
+Main () {
+	readonly Prog=${2##*/}
+
+	if [ $1 -lt 1 ]; then
+		echo "$Prog: error. A command is required" ; Help 40
+	else
+		readonly Command=$3
+		readonly Opt=${4:-$DefaultOptString}
+	fi
+
+	case $Command
+		in getarch      ) GetArch
+		;; getosrelease ) GetOsRelease
+		;; getgitrev    ) GetGitRev $Opt
+		;; getspec      ) GetSpec $Opt
+		;; help         ) Help 0
+		;; *            ) echo "$Prog: error. Unknown command: $Command" ; Help 41
+	esac
+
+	echo Sentinel-2. It must never come here. ; exit 62
+}
+
+#============================================================================================#
+GetArch () {
+	echo $(uname -m)
+	exit 1
+}
+
+#============================================================================================#
+GetGitRev () {
+	if [ "$1" = "$DefaultOptString" ]; then
+		echo "$Prog: error. getgitrev command requires an argument" ; Help 42
+	fi
+
+	DIR=$1
+
+	if [ -d ${DIR} ]; then
+		echo $(cd ${DIR}; git log --pretty=format:'' | wc -l | awk {'print $1'})
+		exit $?;
+	else
+		echo "No such directory: $1"
+		exit 1;
+	fi
+}
+
+#============================================================================================#
+GetOsRelease () {
+	lsb_release -rs | cut -f1 -d.
+	exit 1
+}
+
+#============================================================================================#
+GetSpec () {
+	if [ "$1" = "$DefaultOptString" ]; then
+		echo "$Prog: error. getspec command requires an argument" ; Help 42
+	fi
+
+	NAME=$1
+	OS_RELEASE=$(lsb_release -rs | cut -f1 -d.)
+
+	if [ -e SPECS/${NAME}-${OS_RELEASE}.spec ]; then
+		echo "SPECS/${NAME}-${OS_RELEASE}.spec";
+		exit 0;
+	elif  [ -e SPECS/${NAME}.spec ]; then
+		echo SPECS/${NAME}.spec;
+		exit 0;
+	else
+		echo "No matching spec-file found"
+		exit 1;
+	fi
+}
+
+#============================================================================================#
+Help () {
+	local readonly Status=$1
+
+	echo "Usage: $Prog <command>
+		The options are
+		getarch           : get architecture of current system
+		getosrelease      : get os release of current system
+		getgitrev [DIR]   : gets the git revision of given directory
+		getspec [PKGNAME] : finds the required spec file in SPECS subfolder for PKGNAME
+		help              : displays this help message"
+
+ exit $Status
+}
+
+#============================================================================================#
+Main $# $0 $*                                    # NoOfArguments ThisFilename ArgumentsList
+echo Sentinel-1. It must never come here. ; exit 61
