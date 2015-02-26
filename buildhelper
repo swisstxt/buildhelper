@@ -86,7 +86,7 @@ PushRpm () {
 
 	for RPM in $(find . -name "*.rpm" | grep -v src.rpm); do 
 		BASE=$(basename $RPM)
-		curl -I -X POST --data-binary @$RPM $1${OS_RELEASE}/$BASE
+		curl -X POST --data-binary @$RPM -w '%{response_code}' $1${OS_RELEASE}/$BASE
 	done
     exit 0
 }
