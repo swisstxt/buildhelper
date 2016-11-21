@@ -17,6 +17,7 @@ Main () {
 		in getarch      ) GetArch
 		;; getosrelease ) GetOsRelease
 		;; getgitrev    ) GetGitRev $Opt
+		;; getgittag    ) GetGitTag $Opt
 		;; getspec      ) GetSpec $Opt
 		;; pushrpm      ) PushRpm $Opt
 		;; help         ) Help 0
@@ -42,6 +43,23 @@ GetGitRev () {
 
 	if [ -d ${DIR} ]; then
 		echo $(cd ${DIR}; git log --pretty=format:'' | wc -l | awk {'print $1'})
+		exit $?;
+	else
+		echo "No such directory: $1"
+		exit 1;
+	fi
+}
+
+#============================================================================================#
+GetGitTag () {
+	if [ "$1" = "$DefaultOptString" ]; then
+		echo "$Prog: error. getgittag command requires an argument" ; Help 42
+	fi
+
+	DIR=$1
+
+	if [ -d ${DIR} ]; then
+		(cd ${DIR}; git describe --abbrev=0 --tags)
 		exit $?;
 	else
 		echo "No such directory: $1"
@@ -100,6 +118,7 @@ Help () {
 		getarch           : get architecture of current system
 		getosrelease      : get os release of current system
 		getgitrev [DIR]   : gets the git revision of given directory
+		getgittag [DIR]   : gets the most recent git tag of given directory
 		getspec [PKGNAME] : finds the required spec file in SPECS subfolder for PKGNAME
 		pushrpm [BASEURL] : pushes all *.rpm files found in current dir 
 		                    to [BASEURL][OS_RELEASE]/[RPMNAME]
